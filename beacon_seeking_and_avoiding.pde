@@ -1,5 +1,5 @@
 #include <Servo.h>
-#include <AFMotor.h>
+#include <DualMotor.h>
 #define TOPSPEED 200
 
 // SERVO SCANNING VARIABLES //
@@ -13,8 +13,9 @@ byte servoIncrementValue = 6;
 byte servoDecrementValue = 6;
 
 // MOTOR VARIABLES //
-AF_DCMotor rightMotor(4, MOTOR12_8KHZ); 
-AF_DCMotor leftMotor(3, MOTOR12_8KHZ); 
+int leftMotor[] = {2,3};
+int rightMotor[] = {7,8};
+DualMotor motors(leftMotor,rightMotor);
 
 // TRANSCEIVER VARIABLES //
 int notFoundSensitivity = 500;
@@ -36,8 +37,6 @@ void setup()
   Serial.begin(38400);
   myservo.attach(SERVO_PIN);  // attaches the servo on pin 9 to the servo object 
   myservo.write(0);
-  rightMotor.setSpeed(200);
-  leftMotor.setSpeed(200);
   delay(1500);
 } 
 
@@ -67,7 +66,7 @@ void printToSerial(){
 void move()
 {
     if(servoPosition >= 0 && servoPosition <= 84 && frontReading > 550){ //Object on the left
-      turnLeft();
+      moveForward();
     }else if((servoPosition >= 85 && servoPosition <= 105) && frontReading > 600){ // Object in Front
       turnAround();
     }else if((servoPosition >= 106 && servoPosition <= 180) && frontReading > 550){ // Object on the Right
@@ -115,42 +114,22 @@ long measureFront()
 
 void moveForward(){
   //Serial.println("Move Forward");
-  rightMotor.run(FORWARD);
-  leftMotor.run(FORWARD);
-}
-
-void speedUp(){
-  for (int i=0; i==TOPSPEED; i++) {
-    rightMotor.setSpeed(i);  
-    leftMotor.setSpeed(i);
-  } 
-}
-
-void slowToStop(){
-  for (int i=TOPSPEED; i==0; i--) {
-    rightMotor.setSpeed(i);  
-    leftMotor.setSpeed(i);
-  }
-  rightMotor.run(RELEASE);
-  leftMotor.run(RELEASE);
+  motors.forward();
 }
 
 void turnLeft(){
   //Serial.println("Turn Left");
-  rightMotor.run(BACKWARD);
-  leftMotor.run(FORWARD);
+  motors.left();
 }
 
 void turnRight(){
   //Serial.println("Turn Right");
-  rightMotor.run(FORWARD);
-  leftMotor.run(BACKWARD);
+  motors.right();
 }
 
 void stop(){
   //Serial.println("Stop");
-  rightMotor.run(RELEASE);
-  leftMotor.run(RELEASE);
+  motors.stop();
   delay(500);
 }
 
@@ -167,10 +146,7 @@ void turnAround(){
 
 void moveBackward(){
   //Serial.println("Move Backward");
-  rightMotor.run(RELEASE);
-  leftMotor.run(RELEASE);
-  rightMotor.run(BACKWARD);
-  leftMotor.run(BACKWARD);
+  motors.backward();
 }
 
 
@@ -215,25 +191,6 @@ void getDirection(){
   }
   
   addDirectionToReadings();
-  
-  //Serial.print("W:");
-  //Serial.print(west);
-  //Serial.print(" | S:");
-  //Serial.print(south);
-  //Serial.print(" | E:");
-  //Serial.print(east);
-  //Serial.print(" | N:");
-  //Serial.println(north);
-  //Serial.println("=================================");
-  //if(dir == 1){
-  //  Serial.println("North");
-  //}else if(dir == 2){
-  //  Serial.println("East");
-  //}else if(dir == 3){
-  //  Serial.println("South");
-  //}else if(dir == 4){
-  //  Serial.println("West");
-  //}
 }
 
 void addDirectionToReadings(){
